@@ -176,10 +176,6 @@
 
         <service android:name=".downloader.DownloadService" />
 
-        <meta-data
-            android:name="io.fabric.ApiKey"
-            android:value="453c5fba048c1530342d57b272e0e909d4d266aa" />
-
         <activity
             android:name=".KiwixErrorActivity"
             android:process=":error_activity"></activity>
