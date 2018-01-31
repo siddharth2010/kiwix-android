@@ -32,13 +32,13 @@ String[] archs = ['arm64-v8a', 'armeabi', 'mips', 'mips64', 'x86', 'x86_64']
 
 dependencies {
 
-    // Get kiwixlib online if it is not populated locally
-    if (file("../kiwixlib/src/main").list().length == 1) {
-        implementation 'org.kiwix.kiwixlib:kiwixlib:1.0.2'
-    } else {
-        implementation project(':kiwixlib')
-        archs = file("../kiwixlib/src/main/jniLibs").list()
-    }
+  // Get kiwixlib online if it is not populated locally
+  if (file("../kiwixlib/src/main").list().length == 1) {
+    implementation 'org.kiwix.kiwixlib:kiwixlib:1.0.6'
+  } else {
+    implementation project(':kiwixlib')
+    archs = file("../kiwixlib/src/main/jniLibs").list()
+  }
 
     // Storage Devices
     implementation 'eu.mhutti1.utils.storage:android-storage-devices:0.6.2'
@@ -139,34 +139,69 @@ if (custom.listFiles()) {
 }
 
 android {
-    compileSdkVersion 26
+  compileSdkVersion 26
 
-    defaultConfig {
-        minSdkVersion 14
-        targetSdkVersion 25
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        // See https://github.com/linkedin/dexmaker/issues/65 for why we need the following line.
-        testInstrumentationRunnerArguments.notClass = 'com.android.dex.DexIndexOverflowException'
-        multiDexEnabled true
+  defaultConfig {
+    minSdkVersion 14
+    targetSdkVersion 25
+    testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    // See https://github.com/linkedin/dexmaker/issues/65 for why we need the following line.
+    testInstrumentationRunnerArguments.notClass = 'com.android.dex.DexIndexOverflowException'
+    multiDexEnabled true
+  }
+
+  lintOptions {
+    // Treat lint seriously
+    abortOnError true
+    // Hardcoded strings in xml
+    error 'HardcodedText'
+    // Hardcoded strings in setText
+    error 'SetTextI18n'
+    // Strings.xml issues
+    warning 'ExtraTranslation'
+    warning 'MissingTranslation'
+
+    // Warnings
+    warning 'InvalidPackage'
+    warning 'StringFormatInvalid'
+  }
+
+  flavorDimensions "default"
+
+  buildTypes {
+
+    // Main build type for debugging
+    debug {
+      buildConfigField "String", "KIWIX_DOWNLOAD_URL", "\"http://download.kiwix.org/\""
+      // True breaks local variables being shown in breakpoints
+      testCoverageEnabled false
+      // Needed for instrumentation tests on Pre 5.0
+      multiDexKeepProguard file('multidex-instrumentation-config.pro')
     }
 
-    lintOptions {
-        // Treat lint seriously
-        abortOnError true
-        // Hardcoded strings in xml
-        error 'HardcodedText'
-        // Hardcoded strings in setText
-        error 'SetTextI18n'
-        // Strings.xml issues
-        warning 'ExtraTranslation'
-        warning 'MissingTranslation'
-
-        // Warnings
-        warning 'InvalidPackage'
-        warning 'StringFormatInvalid'
+    mock_network {
+      initWith(buildTypes.debug)
+      matchingFallbacks = ['debug', 'release']
+      // TODO add DI for the mock network
     }
 
-    flavorDimensions "default"
+    local_download_server {
+      initWith(buildTypes.debug)
+      buildConfigField "String", "KIWIX_DOWNLOAD_URL", "\"http://kiwix-download-server/\""
+      matchingFallbacks = ['debug', 'release']
+    }
+
+    // Used to assess code coverage
+    coverage {
+      initWith debug
+      testCoverageEnabled true
+      matchingFallbacks = ['debug', 'release']
+    }
+
+    // Release Type
+    release {
+      buildConfigField "String", "KIWIX_DOWNLOAD_URL", "\"http://download.kiwix.org/\""
+    }
 
     buildTypes {
 
