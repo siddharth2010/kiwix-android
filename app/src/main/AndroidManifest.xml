@@ -180,5 +180,4 @@
             android:name=".KiwixErrorActivity"
             android:process=":error_activity"></activity>
     </application>
-
 </manifest>
